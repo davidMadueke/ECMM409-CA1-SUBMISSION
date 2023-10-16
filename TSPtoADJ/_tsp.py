@@ -56,11 +56,11 @@ def read_tsplib(file_name):
 
 def print_matrix(mat, show_all=False):
     import numpy
-    numpy.set_printoptions(linewidth=100)
+    numpy.set_printoptions(linewidth=1000)
     numpy.set_printoptions(precision=3)
     # this forces to print all elements on a long row, on the next line
     # otherwise, center elements are snipped '...,' to fit line of 100
     if show_all:
-        numpy.set_printoptions(threshold='nan')
+        numpy.set_printoptions(threshold=5000)
 
     print(numpy.array(mat))
