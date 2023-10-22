@@ -97,4 +97,4 @@ import numpy as np
 # A helper function to check if operators applied to a genetic chromosome preserve TSP constraints
 def checkPermutation(inputChromosome, outputChromosome):
 	if len(np.unique(outputChromosome)) != len(inputChromosome):
-		raise Exception('Crossover Operator Failed: There are duplicates in the output chromosome', outputChromosome)
+		raise Exception('Genetic Operator Failed: There are duplicates in the output chromosome', outputChromosome)
