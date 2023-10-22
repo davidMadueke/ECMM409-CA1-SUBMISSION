@@ -1,11 +1,13 @@
 import numpy as np
 from costFunction import *
 from Algorithm.adj_mat import *
-import assets
+from Algorithm.CrossoverOperator import *
+from Algorithm.MutationOperator import *
+from Algorithm.Replacement import *
 
 class EA:
     # INITIALISE ALGORITHM CONSTRUCTOR
-    def __init__(self, TSP, populationSize, tournamentSize, mutationType='singleSwap', crossoverType='crossoverWithFix', RNG_Seed=42):
+    def __init__(self, TSP, populationSize, tournamentSize, mutationType='singleSwap', crossoverType='crossoverWithFix', RNG_Seed=42,replacementType = 'FIFO', terminationCriterion=10000):
 
         self.TSP = TSP
         self.populationSize = populationSize
