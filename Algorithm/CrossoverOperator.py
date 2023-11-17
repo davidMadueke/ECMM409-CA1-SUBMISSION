@@ -11,19 +11,24 @@ class CrossoverOperator:
         self.RNG = np.random.default_rng(seed=self.RNG_Seed)
 
     def processCrossover(self):
-        if self.crossoverType == 'crossoverWithFix':
-            return self.crossoverWithFix(self.parent1, self.parent2)
-        elif self.crossoverType == 'orderedCrossover':
+        if self.crossoverType == 'orderedCrossover':
             return self.orderedCrossover(self.parent1, self.parent2)
         elif self.crossoverType == 'cycleCrossover':
             return self.cycleCrossover(self.parent1, self.parent2)
         else:
-            raise Exception('Invalid Crossover Operator/n Valid options are crossoverWithFix, orderedCrossover and cycleCrossover')
+            raise Exception('Invalid Crossover Operator/n Valid options are orderedCrossover and cycleCrossover')
 
-    def crossoverWithFix(self, parent1, parent2):
-        return 0
 
     def orderedCrossover(self, parent1, parent2):
+        """
+        This algorithm takes the two parents and randomly slices both of them at a specific point in the array. The right
+        hand side (RHS) split points are swapped between parents and the remainder (LHS subset) are taken and ordered
+        according to the original order of the other respective parent
+        :param parent1:
+        :param parent2:
+        :return: child1:
+        :return: child2:
+        """
         # Generate random crossover point
         crossoverPoint = self.RNG.choice(len(parent1))
 
@@ -57,6 +62,7 @@ class CrossoverOperator:
         checkPermutation(parent1, child1)
         checkPermutation(parent2, child2)
 
+
         return child1, child2
 
     # DEFINE THE METHOD THAT IMPLEMENTS THE CYCLE CROSSOVER ALGORITHM
@@ -67,9 +73,10 @@ class CrossoverOperator:
 
         This Algorithm has been adapted from this Forum Answer (DATE ACCESSED: 21 OCT 2023):
         https://codereview.stackexchange.com/questions/226179/easiest-way-to-implement-cycle-crossover
-        :param child1:
-        :param child2:
-        :return: array
+        :param parent1:
+        :param parent2:
+        :return: child1:
+        :return: child2:
         """
         # SET THE PARENT ARRAYS TO LIST FOR THIS ALGORITHM
         parent1 = parent1.tolist()
