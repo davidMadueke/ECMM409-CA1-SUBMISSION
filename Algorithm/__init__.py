@@ -8,7 +8,7 @@ from Algorithm.Replacement import *
 
 class EA:
     # INITIALISE ALGORITHM CONSTRUCTOR
-    def __init__(self, TSP, populationSize, tournamentSize, mutationType='singleSwap', crossoverType='crossoverWithFix', RNG_Seed=42,replacementType = 'FIFO', terminationCriterion=10000):
+    def __init__(self, TSP, populationSize, tournamentSize, mutationType='singleSwap', crossoverType='orderedCrossover', RNG_Seed=42,replacementType = 'FIFO', terminationCriterion=10000):
 
         self.TSP = TSP
         self.populationSize = populationSize
