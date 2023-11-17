@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from costFunction import *
 from Algorithm.adj_mat import *
 from Algorithm.CrossoverOperator import *
@@ -56,41 +57,38 @@ class EA:
     def tournamentSelection(self, population):
         # CHOOSE N RANDOM CHROMOSOMES FROM population (WITHOUT ANY DUPLICATE CHOICES)
         tournament = self.RNG.choice(population, self.tournamentSize, replace=False, axis=1)
-        # print(tournament) # FOR DEBUGGING PURPOSES
 
         # USE THE CALCULATED FITNESS FUNCTIONS TO FIND THE BEST CANDIDATE CHROMOSOME
         tournamentFitness = tournament[0]
         tournament_Victors = list(np.where(tournamentFitness==(np.min(tournamentFitness)))[0]) # find and return all instances with the lowest fitness
         # Note we also have to add list(...[0]) syntax as np.where returns a tuple of (array[],) in this case
 
-        # if len(tournament_Victors) >= 2:
-        #     print('tournament victors ',tournament_Victors) # FOR DEBUGGING PURPOSES
 
         # IF THERE ARE MORE THAN 1 CHROMOSOME WITH THE LOWEST FITNESS, THEN RANDOMLY SELECT ONE OF THEM
         selectedParentIndex = self.RNG.choice(tournament_Victors)
-        # print('Selected Parent Index: ',selectedParentIndex) # FOR DEBUGGING PURPOSES
         selectedParent = tournament[1][selectedParentIndex]
 
-        # print('Selected Parent: ', selectedParent) # FOR DEBUGGING PURPOSES
         return selectedParent
 
     # DEFINE THE METHOD THAT APPLIES THE ALGORITHM
     def applyEA(self):
         # INITIALISE POPULATION MATRIX WITH ASSOCIATED FITNESS FUNCTIONS IN FIRST COLUMN
         population = self.population_init()
+        updatedPopulation = copy.deepcopy(population)
 
         # INITIALISE ANY RECURRING INDICES AND CONSTANTS
         FIFOindex = self.replacement_FIFOindex
 
         # LOOP OVER THIS SUPER-ALGORITHM UP TO terminationCriterion TIMES
-        for i in range(self.terminationCriterion + 1):
+        for i in range(self.terminationCriterion):
+
             # PERFORM TOURNAMENT SELECTION TWICE TO GET TWO PARENTS
-            parentA = self.tournamentSelection(population)
-            parentB = self.tournamentSelection(population)
+            parentA = self.tournamentSelection(updatedPopulation)
+            parentB = self.tournamentSelection(updatedPopulation)
 
 
             # APPLY A SINGLE POINT CROSSOVER TO THE TWO PARENTS TO GET TWO CHILDREN childC and childD RESP.
-            crossover = CrossoverOperator(parentA, parentB, self.crossoverType, self.RNG_Seed) # create crossover object
+            crossover = CrossoverOperator(parentA, parentB, self.crossoverType, self.RNG_Seed + i) # create crossover object
             childC, childD = crossover.processCrossover()
 
             # APPLY A MUTATION OPERATOR TO THE TWO CHILDREN TO GET TWO MUTATED CHILDREN childE and childF RESP.
@@ -98,23 +96,23 @@ class EA:
                 np.array(childC,dtype=np.int8),
                 self.mutationType,
                 multiSwapAmount=self.multiSwapAmount,
-                RNG_Seed=self.RNG_Seed)
+                RNG_Seed=self.RNG_Seed + i)
             mutationD = MutationOperator(
                 np.array(childD,dtype=np.int8),
                 self.mutationType,
                 multiSwapAmount=self.multiSwapAmount,
-                RNG_Seed=self.RNG_Seed)
+                RNG_Seed=2*self.RNG_Seed + i) # To add extra pseudorandomness
 
             childE = mutationC.processMutation()
             childF = mutationD.processMutation()
 
 
             # APPLY A REPLACEMENT FUNCTION (CHECK IF IT IS FIFO AS IT HAS DIFFERENT RETURN VALUES)
-            replacement = Replacement(population,
+            replacement = Replacement(updatedPopulation,
                                       self.adjacency_matrix(),
                                       childE, childF,
                                       self.replacementType,
-                                      RNG_Seed=self.RNG_Seed,
+                                      RNG_Seed=(self.RNG_Seed + i),
                                       replacement_FIFOindex=FIFOindex)
             if self.replacementType == 'FIFO':
                 FIFOindex, updatedPopulation = replacement.applyReplacement()
@@ -123,8 +121,8 @@ class EA:
 
         # EVALUATE WHICH TOUR HAS THE LOWEST FITNESS AFTER THE ITERATIONS HAVE FINISHED
         finalPopulationFitness = updatedPopulation[0]
-        finalPopulation_Victors = np.where(
-            finalPopulationFitness == (np.min(finalPopulationFitness)))  # find and return all instances with the lowest fitness
+        finalPopulation_Victors = list(np.where(
+            finalPopulationFitness == (np.min(finalPopulationFitness)))[0])  # find and return all instances with the lowest fitness
 
         # IF THERE ARE MORE THAN 1 CHROMOSOME WITH THE LOWEST FITNESS, THEN RANDOMLY SELECT ONE OF THEM
         selectedTourIndex = self.RNG.choice(finalPopulation_Victors)
@@ -134,7 +132,7 @@ class EA:
         # CHECK THAT THE FINAL TOUR IS VALID (I.E. A PERMUTATION OF SUBSET [1:len(D)]
         # checkPermutation(selectedTour, np.arange(len(population[1][0])))
 
-        return selectedTour.item(), selectedTourFitness
+        return selectedTour, selectedTourFitness
 
 
 
