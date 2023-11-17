@@ -12,20 +12,18 @@ class MutationOperator:
         self.RNG_Seed = RNG_Seed
         self.RNG = np.random.default_rng(seed=self.RNG_Seed)
 
-    def processMutation(self):
-        if self.mutationType == 'singleSwap':
-            return self.singleSwap(self.child)
-        elif self.mutationType == 'multiSwap':
-            return self.multiSwap(self.child, self.multiSwapAmount)
-        elif self.mutationType == 'inversion':
-            return self.inversion(self.child)
-        elif self.mutationType == 'insert':
-            return self.insert(self.child)
-        elif self.mutationType == 'scramble':
-            return self.scramble(self.child)
-        else:
-            raise Exception('Invalid Mutation Operator/n Valid options are singleSwap, multiSwap, inversion, insert, scramble')
+        self.mutationTypeDict = {'singleSwap': self.singleSwap,
+                                    'multiSwap': self.multiSwap,
+                                    'inversion': self.inversion,
+                                    'insert': self.insert,
+                                    'scramble': self.scramble}  # a dictionary of all valid functions
 
+    def processMutation(self):
+        if self.mutationType in self.mutationTypeDict:
+            return self.mutationTypeDict[self.mutationType](self.child)
+        else:
+            raise Exception("Invalid Replacement Function ( " + self.mutationType + " ).\n Valid options are ",
+                            [key for key in self.mutationTypeDict])
 
     # DEFINE THE METHOD THAT IMPLEMENTS THE SINGLE SWAP ALGORITHM
     def singleSwap(self, child):
@@ -48,12 +46,12 @@ class MutationOperator:
         return mutatedChild
 
     # DEFINE THE MULTISWAP METHOD AS SUCCESSIVE ITERATIONS OF SINGLE SWAP UP TO multiSwapAmount TIMES
-    def multiSwap(self, child, multiSwapAmount):
+    def multiSwap(self, child):
         # COPY CONTENTS OF child TO NEW mutatedChild ARRAY
         mutatedChild = np.zeros(len(child), dtype=np.int8)
         mutatedChild += child
 
-        for i in range(multiSwapAmount):
+        for i in range(self.multiSwapAmount):
             # PERFORM THE SAME ALGORITHM USED IN SINGLE SWAP
             mutationIndices = self.RNG.choice(len(child), 2, replace=False)
 
@@ -134,9 +132,9 @@ class MutationOperator:
         mutatedChild += child
 
         # GENERATE TWO RANDOM POSITIONS IN THE CHROMOSOME TO GENERATE A CONTIGUOUS SUBSET
-        mutationIndices = self.RNG.choice(len(child) + 1, 2,
+        mutationIndices = self.RNG.choice(len(child), 2,
                                           replace=False)  # chose len(child)+1 to permute entire child
-        # print('mutation Indices ', mutationIndices)  # For debugging purposes
+        print('mutation Indices ', mutationIndices)  # For debugging purposes
 
         # ORDER THIS ARRAY OF INDEXES FROM SMALLEST TO LARGEST
         sortedMutationIndices = np.sort(mutationIndices)
@@ -151,12 +149,14 @@ class MutationOperator:
         tmp_index_array = mutatedChild[sortedMutationIndices[1]]
 
         # SET THE VALUES OF mutatedChild (NOT EQUAL TO [INDEX 1]+1) = VALUES (NOT EQUAL TO INDEX 2)
-        mutatedChild[range_array != (sortedMutationIndices[0]+1)] = mutatedChild[range_array != sortedMutationIndices[1]]
+        mutatedChild[range_array != (sortedMutationIndices[0])] = mutatedChild[range_array != sortedMutationIndices[1]]
 
         # SET THE VALUE OF mutatedChild at [INDEX 1]+1 TO BE tmp_index_array
-        mutatedChild[sortedMutationIndices[0]+1] = tmp_index_array
+        mutatedChild[sortedMutationIndices[0]] = tmp_index_array
 
         # APPLY PERMUTATION CONTINUITY CHECK BETWEEN CHILD AND MUTATED CHILD
         checkPermutation(child, mutatedChild)
+
+        print('original child ', child, ' mutated child ', mutatedChild)
 
         return mutatedChild
